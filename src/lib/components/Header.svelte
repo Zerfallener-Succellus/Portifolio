@@ -1,36 +1,21 @@
 <script lang="ts">
+  import { base } from '$app/paths';
+
   const links = [
     { href: '#about', label: 'Sobre' },
     { href: '#skills', label: 'Habilidades' },
     { href: '#projects', label: 'Projetos' },
   ];
-
-  function handleNavClick(event: MouseEvent, href: string) {
-    const id = href.startsWith('#') ? href.slice(1) : null;
-    if (id) {
-      event.preventDefault();
-      const el = document.getElementById(id);
-      const header = document.querySelector('header');
-      if (el && header) {
-        const headerHeight = (header as HTMLElement).offsetHeight;
-        const elTop = el.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({
-          top: elTop - headerHeight - 8,
-          behavior: 'smooth'
-        });
-      }
-    }
-  }
 </script>
 
 <header>
   <nav>
-    <a href="/" class="logo">Lucas Ferreira</a>
+    <a href={base || '/'} class="logo">Lucas Ferreira</a>
     <ul>
       {#each links as link}
-        <li><a href={link.href} on:click={(e) => handleNavClick(e, link.href)}>{link.label}</a></li>
+        <li><a href={link.href}>{link.label}</a></li>
       {/each}
-      <li><a href="#contact" class="contact-button" on:click={(e) => handleNavClick(e, '#contact')}>Contato</a></li>
+      <li><a href="#contact" class="contact-button">Contato</a></li>
     </ul>
   </nav>
 </header>
@@ -54,6 +39,7 @@
     font-weight: bold;
     font-size: 1.5rem;
     color: var(--text-color);
+    text-decoration: none; 
   }
   ul {
     display: flex;
