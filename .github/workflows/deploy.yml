@@ -1,58 +1,56 @@
 # .github/workflows/deploy.yml
 
-name: Deploy SvelteKit to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
-  # Roda quando um push é feito na branch 'main'
   push:
     branches:
-      - main
+      - main # Roda quando há push na branch main
+  workflow_dispatch: # Permite rodar manualmente
 
-  # Permite rodar este workflow manualmente pela aba Actions do GitHub
-  workflow_dispatch:
-
-# Define as permissões que o job precisa para o token do GitHub
+# Permissões necessárias para o workflow publicar no GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+# Permite apenas um deploy por vez, cancelando execuções antigas
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
+jobs:
+  build:
+    runs-on: ubuntu-latest
     steps:
-      # 1. Faz o checkout do seu código para que o job possa acessá-lo
-      - name: Checkout code
+      - name: Checkout your repository
         uses: actions/checkout@v4
 
-      # 2. Configura o ambiente Node.js na versão 20.x
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20.x"
-          cache: 'npm' # Habilita o cache para acelerar instalações futuras
+          node-version: "20"
+          cache: "npm"
 
-      # 3. Instala as dependências do projeto
       - name: Install dependencies
-        run: npm ci # 'ci' é mais rápido e seguro para ambientes de automação
+        run: npm ci
 
-      # 4. Gera o build estático do site
       - name: Build SvelteKit site
         run: npm run build
 
-      # 5. Prepara os artefatos para o deploy no GitHub Pages
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      # 6. Faz o upload dos artefatos do build
-      - name: Upload artifact
+      - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Pasta onde o build foi gerado (definido no svelte.config.js)
+          # Pasta que será enviada para o deploy (deve ser 'build')
           path: './build'
 
-      # 7. Faz o deploy final para o GitHub Pages
+  deploy:
+    needs: build # Roda apenas depois que o job 'build' for bem-sucedido
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
