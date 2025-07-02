@@ -5,16 +5,14 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main # Roda quando há push na branch main
-  workflow_dispatch: # Permite rodar manualmente
+      - main
+  workflow_dispatch:
 
-# Permissões necessárias para o workflow publicar no GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Permite apenas um deploy por vez, cancelando execuções antigas
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -25,7 +23,7 @@ jobs:
     steps:
       - name: Checkout your repository
         uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -38,14 +36,19 @@ jobs:
       - name: Build SvelteKit site
         run: npm run build
 
+      # ====================================================================
+      # ===== PASSO DE DIAGNÓSTICO ADICIONADO PARA VER OS ARQUIVOS =======
+      - name: List output files
+        run: ls -R
+      # ====================================================================
+
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Pasta que será enviada para o deploy (deve ser 'build')
           path: './build'
 
   deploy:
-    needs: build # Roda apenas depois que o job 'build' for bem-sucedido
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
